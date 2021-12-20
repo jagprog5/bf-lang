@@ -38,10 +38,17 @@ int main(int argc, char **argv) {
                 }
             break;
             case '<':
-                if (data_position == 0) {
+                if (data_position - data_start == 0) {
                     char* new_data = realloc(data_start, data_length * 2);
-                    fprintf(stderr, "The data pointer was moved to a negative offset!\n");
-                    return 3;
+                    if (!new_data) {
+                        fprintf(stderr, "Failed to expand the data array!\n");
+                        return 2;
+                    }
+                    memmove(new_data + data_length, new_data, data_length * sizeof(*data_start));
+                    memset(new_data, 0, data_length * sizeof(*data_start));
+                    data_position = new_data + data_length + (data_position - data_start);
+                    data_start = new_data;
+                    data_length *= 2;
                 }
                 --data_position;
             break;
