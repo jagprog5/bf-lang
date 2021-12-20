@@ -1,0 +1,1 @@
+a c implementation of brainfuck, compliant with this [brainfuck standard](https://github.com/brain-lang/brainfuck/blob/master/brainfuck.md).
