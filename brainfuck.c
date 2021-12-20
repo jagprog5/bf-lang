@@ -62,13 +62,19 @@ int main(int argc, char **argv) {
                 putchar(*data_position);
             break;
             case ',':
-                *data_position = getchar();
+                c = getchar();
+                *data_position = c == EOF ? 0 : c;
             break;
             case '[':
                 {
                     unsigned long forward_loop_level = 1;
                     if (!*data_position) {
-                        while ((c = getc(fp)) != EOF) {
+                        while (1) {
+                            c = getc(fp);
+                            if (c == EOF) {
+                                fprintf(stderr, "Missing ']'!\n");
+                                return 3;
+                            }
                             if (c == '[') {
                                 forward_loop_level += 1;
                             } else if (c == ']') {
@@ -88,7 +94,7 @@ int main(int argc, char **argv) {
                         do {
                             if (fseek(fp, -2L, SEEK_CUR)) {
                                 fprintf(stderr, "Missing '['!\n");
-                                return 3;
+                                return 4;
                             }
                             c = getc(fp);
                             if (c == '[') {
