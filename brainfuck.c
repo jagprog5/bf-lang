@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
                 if (++data_position - data_start == data_length) {
                     char* new_data = realloc(data_start, data_length * 2 * sizeof(*data_start));
                     if (!new_data) {
-                        fprintf(stderr, "Failed to expand the data array!\n");
+                        fprintf(stderr, "Memory failure.\n");
                         return 2;
                     }
                     data_position = new_data + (data_position - data_start);
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
                 if (data_position - data_start == 0) {
                     char* new_data = realloc(data_start, data_length * 2);
                     if (!new_data) {
-                        fprintf(stderr, "Failed to expand the data array!\n");
+                        fprintf(stderr, "Memory failure.\n");
                         return 2;
                     }
                     memmove(new_data + data_length, new_data, data_length * sizeof(*data_start));
@@ -65,36 +65,43 @@ int main(int argc, char **argv) {
                 *data_position = getchar();
             break;
             case '[':
-                unsigned long forward_loop_level = 1;
-                if (!*data_position) {
-                    while ((c = getc(fp)) != EOF) {
-                        if (c == '[') {
-                            forward_loop_level += 1;
-                        } else if (c == ']') {
-                            forward_loop_level -= 1;
-                            if (forward_loop_level == 0) {
-                                break;
+                {
+                    unsigned long forward_loop_level = 1;
+                    if (!*data_position) {
+                        while ((c = getc(fp)) != EOF) {
+                            if (c == '[') {
+                                forward_loop_level += 1;
+                            } else if (c == ']') {
+                                forward_loop_level -= 1;
+                                if (forward_loop_level == 0) {
+                                    break;
+                                }
                             }
                         }
                     }
                 }
             break;
             case ']':
-                unsigned long backward_loop_level = 1;
-                if (*data_position) {
-                    do {
-                        fseek(fp, -2L, SEEK_CUR); 
-                        c = getc(fp);
-                        if (c == '[') {
-                            backward_loop_level -= 1;
-                            if (backward_loop_level == 0) {
-                                fseek(fp, -1L, SEEK_CUR); 
-                                break;
+                {
+                    unsigned long backward_loop_level = 1;
+                    if (*data_position) {
+                        do {
+                            if (fseek(fp, -2L, SEEK_CUR)) {
+                                fprintf(stderr, "Missing '['!\n");
+                                return 3;
                             }
-                        } else if (c == ']') {
-                            backward_loop_level += 1;
-                        }
-                    } while (1);
+                            c = getc(fp);
+                            if (c == '[') {
+                                backward_loop_level -= 1;
+                                if (backward_loop_level == 0) {
+                                    fseek(fp, -1L, SEEK_CUR); 
+                                    break;
+                                }
+                            } else if (c == ']') {
+                                backward_loop_level += 1;
+                            }
+                        } while (1);
+                    }
                 }
             break;
         }
