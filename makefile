@@ -1,2 +1,2 @@
 build:
-	${CC} brainfuck.c -o brainfuck -Os
+	${CC} main.c -O2
